@@ -2,6 +2,7 @@
 /*
 !/.gitignore
 !/Containerfile
+!/README.md
 !/envs/
 !/patches/
 !/scripts/
