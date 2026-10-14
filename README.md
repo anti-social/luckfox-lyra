@@ -13,7 +13,7 @@ Containerfile        Ubuntu 22.04 build environment
 
 ## Initialize
 
-1. Download the SDK archive (see [Download](https://wiki.luckfox.com/Luckfox-Lyra/Download))
+1. Download the SDK archive (see `Google Drive` link [Download](https://wiki.luckfox.com/Luckfox-Lyra/Download/#downloads))
    and unpack it next to this repo's files, i.e. into the directory you cloned:
 
    ```sh
@@ -48,9 +48,14 @@ its output, so switching paths requires a clean rebuild.
 Inside it:
 
 ```sh
-./build.sh lunch   # board: RK3506G_Luckfox_Lyra_Plus, boot medium: SPI_NAND, system: Buildroot
-./build.sh         # full image
-./build.sh env     # env images from envs/*.txt -> output/env/
+# board: RK3506G_Luckfox_Lyra_Plus, boot medium: SPI_NAND, system: Buildroot
+podman run --rm -it -v "$PWD:/work" -w /work lyra-sdk ./build.sh lunch
+
+# build full image
+podman run --rm -it -v "$PWD:/work" -w /work lyra-sdk ./build.sh
+
+# env images from envs/*.txt -> output/env/
+podman run --rm -it -v "$PWD:/work" -w /work lyra-sdk ./build.sh env
 ```
 
 Images end up in `rockdev/` (`output/firmware`); `update.img` is the complete
