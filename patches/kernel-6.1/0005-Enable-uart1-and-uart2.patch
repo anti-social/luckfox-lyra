@@ -1,0 +1,32 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Koval <kovalidis@gmail.com>
+Date: Wed, 14 Oct 2026 22:55:34 +0300
+Subject: [PATCH 5/6] Enable uart1 and uart2
+
+---
+ arch/arm/boot/dts/rk3506g-luckfox-lyra-plus.dts | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/arch/arm/boot/dts/rk3506g-luckfox-lyra-plus.dts b/arch/arm/boot/dts/rk3506g-luckfox-lyra-plus.dts
+index fc7533f99..7743b9efd 100644
+--- a/arch/arm/boot/dts/rk3506g-luckfox-lyra-plus.dts
++++ b/arch/arm/boot/dts/rk3506g-luckfox-lyra-plus.dts
+@@ -70,3 +70,18 @@ &usb20_otg1 {
+ 	dr_mode = "host";
+ 	status = "okay";
+ };
++
++/**********uart**********/
++/* UART1: TX = RM_IO2 (GPIO0_A2), RX = RM_IO3 (GPIO0_A3) */
++&uart1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&rm_io2_uart1_tx &rm_io3_uart1_rx>;
++	status = "okay";
++};
++
++/* UART2: TX = RM_IO31 (GPIO1_D3), RX = RM_IO30 (GPIO1_D2) */
++&uart2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&rm_io31_uart2_tx &rm_io30_uart2_rx>;
++	status = "okay";
++};

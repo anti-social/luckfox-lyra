@@ -1,0 +1,35 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Koval <kovalidis@gmail.com>
+Date: Wed, 14 Oct 2026 22:53:57 +0300
+Subject: [PATCH 3/6] Enable netfilter
+
+---
+ arch/arm/configs/rk3506_luckfox_defconfig | 15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/configs/rk3506_luckfox_defconfig b/arch/arm/configs/rk3506_luckfox_defconfig
+index 0b50a86fe..84db3d39b 100644
+--- a/arch/arm/configs/rk3506_luckfox_defconfig
++++ b/arch/arm/configs/rk3506_luckfox_defconfig
+@@ -71,8 +71,19 @@ CONFIG_PACKET=y
+ CONFIG_UNIX=y
+ CONFIG_INET=y
+ # CONFIG_INET_DIAG is not set
+-# CONFIG_IPV6 is not set
+-CONFIG_BRIDGE=y
++CONFIG_IPV6=m
++# CONFIG_IPV6_SIT is not set
++CONFIG_NETFILTER=y
++CONFIG_NF_CONNTRACK=m
++CONFIG_NF_TABLES=m
++CONFIG_NFT_LOG=m
++CONFIG_NFT_MASQ=m
++CONFIG_NFT_NAT=m
++CONFIG_NFT_REJECT=m
++CONFIG_NETFILTER_XTABLES=m
++CONFIG_NF_TABLES_IPV4=y
++CONFIG_NF_TABLES_IPV6=y
++CONFIG_BRIDGE=m
+ # CONFIG_BRIDGE_IGMP_SNOOPING is not set
+ CONFIG_VLAN_8021Q=m
+ CONFIG_CAN=y

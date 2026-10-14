@@ -1,0 +1,147 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Koval <kovalidis@gmail.com>
+Date: Wed, 14 Oct 2026 23:02:36 +0300
+Subject: [PATCH 3/3] Add env partition
+
+---
+ ...kfox_lyra_plus_buildroot_spinand_defconfig |  4 +-
+ .../overlays/fw-env-spinand/etc/fw_env.config |  3 +
+ .chips/rk3506/parameter-lyra-plus-spinand.txt | 13 ++++
+ common/build-hooks/85-env.sh                  |  1 +
+ common/scripts/mk-env.sh                      | 75 +++++++++++++++++++
+ 5 files changed, 95 insertions(+), 1 deletion(-)
+ create mode 100644 .chips/rk3506/overlays/fw-env-spinand/etc/fw_env.config
+ create mode 100644 .chips/rk3506/parameter-lyra-plus-spinand.txt
+ create mode 120000 common/build-hooks/85-env.sh
+ create mode 100755 common/scripts/mk-env.sh
+
+diff --git a/.chips/rk3506/luckfox_lyra_plus_buildroot_spinand_defconfig b/.chips/rk3506/luckfox_lyra_plus_buildroot_spinand_defconfig
+index 7ea6ce4..61fa798 100644
+--- a/.chips/rk3506/luckfox_lyra_plus_buildroot_spinand_defconfig
++++ b/.chips/rk3506/luckfox_lyra_plus_buildroot_spinand_defconfig
+@@ -15,5 +15,7 @@ RK_KERNEL_DTS_NAME="rk3506g-luckfox-lyra-plus"
+ RK_BOOT_COMPRESSED=y
+ # RK_RECOVERY is not set
+ RK_EXTRA_PARTITION_NUM=0
+-RK_PARAMETER="parameter-lyra-spinand.txt"
++RK_PARAMETER="parameter-lyra-plus-spinand.txt"
+ RK_USE_FIT_IMG=y
++RK_ROOTFS_EXTRA_OVERLAY_DIRS="fw-env-spinand"
++# RK_NETWORK_CHECK is not set
+diff --git a/.chips/rk3506/overlays/fw-env-spinand/etc/fw_env.config b/.chips/rk3506/overlays/fw-env-spinand/etc/fw_env.config
+new file mode 100644
+index 0000000..e78f699
+--- /dev/null
++++ b/.chips/rk3506/overlays/fw-env-spinand/etc/fw_env.config
+@@ -0,0 +1,3 @@
++# "env" partition from parameter-lyra-plus-spinand.txt (512K, SPI NAND)
++# MTD device name	Device offset	Env. size	Flash sector size	Number of sectors
++/dev/mtd2		0x0		0x40000		0x20000			4
+diff --git a/.chips/rk3506/parameter-lyra-plus-spinand.txt b/.chips/rk3506/parameter-lyra-plus-spinand.txt
+new file mode 100644
+index 0000000..8183929
+--- /dev/null
++++ b/.chips/rk3506/parameter-lyra-plus-spinand.txt
+@@ -0,0 +1,13 @@
++FIRMWARE_VER:8.1
++MACHINE_MODEL:RK3506
++MACHINE_ID:007
++MANUFACTURER: RK3506
++MAGIC: 0x5041524B
++ATAG: 0x00200800
++MACHINE: 3506
++CHECK_MASK: 0x80
++PWR_HLD: 0,0,A,0,1
++TYPE: GPT
++GROW_ALIGN: 0
++CMDLINE:mtdparts=:0x00002000@0x00002000(uboot),0x00006000@0x00004000(boot),0x00000400@0x0000A000(env),-@0x00010000(rootfs:grow)
++uuid:rootfs=614e0000-0000-4b53-8000-1d28000054a9
+diff --git a/common/build-hooks/85-env.sh b/common/build-hooks/85-env.sh
+new file mode 120000
+index 0000000..9fea33c
+--- /dev/null
++++ b/common/build-hooks/85-env.sh
+@@ -0,0 +1 @@
++../scripts/mk-env.sh
+\ No newline at end of file
+diff --git a/common/scripts/mk-env.sh b/common/scripts/mk-env.sh
+new file mode 100755
+index 0000000..5bae44b
+--- /dev/null
++++ b/common/scripts/mk-env.sh
+@@ -0,0 +1,75 @@
++#!/bin/bash -e
++
++# Env image size, must match the "Env. size" in /etc/fw_env.config
++RK_ENV_SIZE="${RK_ENV_SIZE:-0x40000}"
++
++build_env()
++{
++	ENV_SRC_DIR="$RK_SDK_DIR/envs"
++	ENV_OUT_DIR="$RK_OUTDIR/env"
++	MKENVIMAGE="$RK_SDK_DIR/u-boot/tools/mkenvimage"
++
++	PART_SIZE="$(rk_partition_size env)"
++	if [ -z "$PART_SIZE" ]; then
++		error "No env partition in $RK_PARAMETER!"
++		return 1
++	fi
++
++	if [ $(( $RK_ENV_SIZE )) -gt $(( $PART_SIZE * 512 )) ]; then
++		error "Env size ($RK_ENV_SIZE) exceeds env partition!"
++		return 1
++	fi
++
++	if [ ! -x "$MKENVIMAGE" ]; then
++		error "$MKENVIMAGE not found, please build u-boot first!"
++		return 1
++	fi
++
++	if [ "$1" ]; then
++		ENV_FILES="$ENV_SRC_DIR/${1%.txt}.txt"
++	else
++		ENV_FILES="$(ls "$ENV_SRC_DIR"/*.txt 2>/dev/null || true)"
++	fi
++
++	if [ -z "$ENV_FILES" ]; then
++		error "No env files found in $ENV_SRC_DIR!"
++		return 1
++	fi
++
++	mkdir -p "$ENV_OUT_DIR"
++	for ENV_FILE in $ENV_FILES; do
++		if [ ! -r "$ENV_FILE" ]; then
++			error "$ENV_FILE not exists!"
++			return 1
++		fi
++
++		ENV_IMG="$ENV_OUT_DIR/$(basename "${ENV_FILE%.txt}").img"
++		"$MKENVIMAGE" -s "$RK_ENV_SIZE" -p 0x0 -o "$ENV_IMG" "$ENV_FILE"
++		notice "Done packing $ENV_IMG"
++	done
++
++	finish_build build_env $@
++}
++
++# Hooks
++
++usage_hook()
++{
++	usage_oneline "env[:<name>]" "pack env images from envs/*.txt (or envs/<name>.txt)"
++}
++
++clean_hook()
++{
++	rm -rf "$RK_OUTDIR/env"
++}
++
++BUILD_CMDS="env"
++build_hook()
++{
++	shift
++	build_env $@
++}
++
++source "${RK_BUILD_HELPER:-$(dirname "$(realpath "$0")")/../build-hooks/build-helper}"
++
++build_env $@

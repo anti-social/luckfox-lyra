@@ -1,0 +1,22 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Koval <kovalidis@gmail.com>
+Date: Wed, 14 Oct 2026 22:54:34 +0300
+Subject: [PATCH 4/6] Use name for ubi mtd device instead of index
+
+---
+ arch/arm/boot/dts/rk3506g-luckfox-lyra-plus.dts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/rk3506g-luckfox-lyra-plus.dts b/arch/arm/boot/dts/rk3506g-luckfox-lyra-plus.dts
+index 7b1ba6b69..fc7533f99 100644
+--- a/arch/arm/boot/dts/rk3506g-luckfox-lyra-plus.dts
++++ b/arch/arm/boot/dts/rk3506g-luckfox-lyra-plus.dts
+@@ -12,7 +12,7 @@ / {
+ 	compatible = "rockchip,rk3506g-demo-display-control", "rockchip,rk3506";
+ 
+ 	chosen {
+-		bootargs = "earlycon=uart8250,mmio32,0xff0a0000 console=tty1 console=ttyFIQ0 root=ubi0:rootfs ubi.mtd=2 rootfstype=ubifs rootwait snd_aloop.index=7 snd_aloop.use_raw_jiffies=1";
++		bootargs = "earlycon=uart8250,mmio32,0xff0a0000 console=tty1 console=ttyFIQ0 root=ubi0:rootfs ubi.mtd=rootfs rootfstype=ubifs rootwait snd_aloop.index=7 snd_aloop.use_raw_jiffies=1";
+ 	};
+ };
+ 

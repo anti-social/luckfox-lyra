@@ -1,0 +1,43 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Koval <kovalidis@gmail.com>
+Date: Wed, 14 Oct 2026 22:57:09 +0300
+Subject: [PATCH 3/3] Install tools: htop, nft, nmap, u-boot, wireguard
+
+---
+ configs/rockchip_rk3506_luckfox_defconfig | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/configs/rockchip_rk3506_luckfox_defconfig b/configs/rockchip_rk3506_luckfox_defconfig
+index 20ee9c0d..ce6759cf 100644
+--- a/configs/rockchip_rk3506_luckfox_defconfig
++++ b/configs/rockchip_rk3506_luckfox_defconfig
+@@ -20,6 +20,7 @@ BR2_PACKAGE_HOSTAPD=y
+ BR2_PACKAGE_HOSTAPD_EAP=y
+ BR2_PACKAGE_HOST_DTC=y
+ BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_6_1=y
++BR2_PACKAGE_HTOP=y
+ BR2_PACKAGE_IPERF3=y
+ BR2_PACKAGE_IPROUTE2=y
+ BR2_PACKAGE_LIBCAP=y
+@@ -32,6 +33,9 @@ BR2_PACKAGE_MHZ=y
+ BR2_PACKAGE_MINICOM=y
+ BR2_PACKAGE_NANO=y
+ BR2_PACKAGE_NANOCOM=y
++BR2_PACKAGE_NFTABLES=y
++# BR2_PACKAGE_NFTABLES_PYTHON is not set
++BR2_PACKAGE_NMAP=y
+ BR2_PACKAGE_OPENSSH=y
+ BR2_PACKAGE_OPENSSH_GEN_KEYS=y
+ BR2_PACKAGE_PCRE2_16=y
+@@ -64,8 +68,11 @@ BR2_PACKAGE_RKADK_PLAYER=y
+ BR2_PACKAGE_RKWIFIBT_APP=y
+ BR2_PACKAGE_ROCKCHIP_RGA=y
+ BR2_PACKAGE_ROCKCHIP_TEST=y
++BR2_PACKAGE_TCPDUMP=y
++BR2_PACKAGE_UBOOT_TOOLS=y
+ BR2_PACKAGE_UTIL_LINUX_AGETTY=y
+ BR2_PACKAGE_VIM=y
++BR2_PACKAGE_WIREGUARD_TOOLS=y
+ BR2_PACK_EXTRA_TARGET=y
+ # BR2_PREFER_ROCKCHIP_RGA is not set
+ BR2_ROCKCHIP_ALSA_CONFIG_INSTALL_INIT_SCRIPT=y

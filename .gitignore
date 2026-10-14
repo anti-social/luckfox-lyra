@@ -1,0 +1,7 @@
+# The SDK tree (managed by repo) is not tracked here; only our own files are.
+/*
+!/.gitignore
+!/Containerfile
+!/envs/
+!/patches/
+!/scripts/

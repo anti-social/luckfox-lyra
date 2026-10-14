@@ -1,0 +1,23 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Koval <kovalidis@gmail.com>
+Date: Wed, 14 Oct 2026 22:56:51 +0300
+Subject: [PATCH 2/3] Fix extracting some packets
+
+---
+ configs/rockchip/base/common.config | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/configs/rockchip/base/common.config b/configs/rockchip/base/common.config
+index 65e25d2f..ce9aa71e 100644
+--- a/configs/rockchip/base/common.config
++++ b/configs/rockchip/base/common.config
+@@ -13,6 +13,9 @@ BR2_BACKUP_SITE=""
+ # Mirror for GNU packages
+ BR2_GNU_MIRROR="https://ftpmirror.gnu.org/gnu"
+ 
++# Don't restore archive uid/gid (fails in rootless containers)
++BR2_TAR_OPTIONS="--no-same-owner"
++
+ # Rockchip BSP packages
+ BR2_PACKAGE_ROCKCHIP=y
+ 

@@ -1,0 +1,35 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Koval <kovalidis@gmail.com>
+Date: Wed, 14 Oct 2026 22:55:53 +0300
+Subject: [PATCH 6/6] Enable i2c0
+
+---
+ .../arm/boot/dts/rk3506g-luckfox-lyra-plus.dts | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/arch/arm/boot/dts/rk3506g-luckfox-lyra-plus.dts b/arch/arm/boot/dts/rk3506g-luckfox-lyra-plus.dts
+index 7743b9efd..5d7be7ff5 100644
+--- a/arch/arm/boot/dts/rk3506g-luckfox-lyra-plus.dts
++++ b/arch/arm/boot/dts/rk3506g-luckfox-lyra-plus.dts
+@@ -85,3 +85,21 @@ &uart2 {
+ 	pinctrl-0 = <&rm_io31_uart2_tx &rm_io30_uart2_rx>;
+ 	status = "okay";
+ };
++
++/**********i2c**********/
++/* I2C0: SCL = RM_IO29 (GPIO1_D1), SDA = RM_IO28 (GPIO1_C3) */
++&i2c0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&rm_io29_i2c0_scl &rm_io28_i2c0_sda>;
++	clock-frequency = <100000>;
++	status = "okay";
++};
++
++/* Enable internal pull-ups on I2C0 lines (default RMIO groups use pull_none) */
++&rm_io29_i2c0_scl {
++	rockchip,pins = <1 RK_PD1 30 &pcfg_pull_up>;
++};
++
++&rm_io28_i2c0_sda {
++	rockchip,pins = <1 RK_PC3 31 &pcfg_pull_up>;
++};

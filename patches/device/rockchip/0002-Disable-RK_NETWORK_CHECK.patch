@@ -1,0 +1,18 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Koval <kovalidis@gmail.com>
+Date: Wed, 14 Oct 2026 22:59:17 +0300
+Subject: [PATCH 2/3] Disable RK_NETWORK_CHECK
+
+---
+ .chips/rk3506/luckfox_lyra_buildroot_sdmmc_defconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/.chips/rk3506/luckfox_lyra_buildroot_sdmmc_defconfig b/.chips/rk3506/luckfox_lyra_buildroot_sdmmc_defconfig
+index 4dd2f86..3094237 100644
+--- a/.chips/rk3506/luckfox_lyra_buildroot_sdmmc_defconfig
++++ b/.chips/rk3506/luckfox_lyra_buildroot_sdmmc_defconfig
+@@ -16,3 +16,4 @@ RK_BOOT_COMPRESSED=y
+ RK_EXTRA_PARTITION_NUM=0
+ RK_PARAMETER="parameter-lyra-sdmmc.txt"
+ RK_USE_FIT_IMG=y
++# RK_NETWORK_CHECK is not set
