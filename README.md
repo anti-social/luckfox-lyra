@@ -13,7 +13,7 @@ Containerfile        Ubuntu 22.04 build environment
 
 ## Initialize
 
-1. Download the SDK archive (see `Google Drive` link [Download](https://wiki.luckfox.com/Luckfox-Lyra/Download/#downloads))
+1. Download the [SDK archive](https://drive.google.com/file/d/15nq-Fac9q6zmisKZgLDZyoifSkL_48rG/view?usp=drive_link) (see `Google Drive` link on [Download](https://wiki.luckfox.com/Luckfox-Lyra/Download/#downloads) page for actual link)
    and unpack it next to this repo's files, i.e. into the directory you cloned:
 
    ```sh
