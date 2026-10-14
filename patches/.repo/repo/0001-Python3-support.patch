@@ -1,0 +1,116 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Koval <kovalidis@gmail.com>
+Date: Wed, 14 Oct 2026 23:07:24 +0300
+Subject: [PATCH 1/2] Python3 support
+
+---
+ git_config.py   |  2 +-
+ main.py         |  2 +-
+ subcmds/help.py | 14 +++++++++-----
+ wrapper.py      | 14 ++++++++++++--
+ 4 files changed, 23 insertions(+), 9 deletions(-)
+
+diff --git a/git_config.py b/git_config.py
+index e223678..3c7d98e 100644
+--- a/git_config.py
++++ b/git_config.py
+@@ -296,7 +296,7 @@ class GitConfig(object):
+     d = self._do('--null', '--list')
+     if d is None:
+       return c
+-    for line in d.decode('utf-8').rstrip('\0').split('\0'):  # pylint: disable=W1401
++    for line in d.rstrip('\0').split('\0'):  # pylint: disable=W1401
+                                                              # Backslash is not anomalous
+       if '\n' in line:
+         key, val = line.split('\n', 1)
+diff --git a/main.py b/main.py
+index c5f1e9c..840acd3 100755
+--- a/main.py
++++ b/main.py
+@@ -16,7 +16,6 @@
+ 
+ from __future__ import print_function
+ import getpass
+-import imp
+ import netrc
+ import optparse
+ import os
+@@ -27,6 +26,7 @@ from pyversion import is_python3
+ if is_python3():
+   import urllib.request
+ else:
++  import imp
+   import urllib2
+   urllib = imp.new_module('urllib')
+   urllib.request = urllib2
+diff --git a/subcmds/help.py b/subcmds/help.py
+index 9bb4c8c..2587df6 100644
+--- a/subcmds/help.py
++++ b/subcmds/help.py
+@@ -16,7 +16,8 @@
+ from __future__ import print_function
+ import re
+ import sys
+-from formatter import AbstractFormatter, DumbWriter
++import textwrap
++# from formatter import AbstractFormatter, DumbWriter
+ 
+ from color import Coloring
+ from command import PagedCommand, MirrorSafeCommand, GitcAvailableCommand, GitcClientCommand
+@@ -93,7 +94,8 @@ Displays detailed usage information about a command.
+         Coloring.__init__(self, gc, 'help')
+         self.heading = self.printer('heading', attr='bold')
+ 
+-        self.wrap = AbstractFormatter(DumbWriter())
++        self.wrap = textwrap.TextWrapper()
++        # self.wrap = AbstractFormatter(DumbWriter())
+ 
+       def _PrintSection(self, heading, bodyAttr):
+         try:
+@@ -141,9 +143,11 @@ Displays detailed usage information about a command.
+             self.nl()
+             continue
+ 
+-          self.wrap.add_flowing_data(para)
+-          self.wrap.end_paragraph(1)
+-        self.wrap.end_paragraph(0)
++          for line in self.wrap.text(para):
++            print(line)
++          # self.wrap.add_flowing_data(para)
++          # self.wrap.end_paragraph(1)
++        # self.wrap.end_paragraph(0)
+ 
+     out = _Out(self.manifest.globalConfig)
+     out._PrintSection('Summary', 'helpSummary')
+diff --git a/wrapper.py b/wrapper.py
+index e7e276e..f0f0ed4 100644
+--- a/wrapper.py
++++ b/wrapper.py
+@@ -15,9 +15,19 @@
+ # limitations under the License.
+ 
+ from __future__ import print_function
+-import imp
++import importlib.util
++import importlib.machinery
+ import os
+ 
++def load_source(modname, filename):
++    loader = importlib.machinery.SourceFileLoader(modname, filename)
++    spec = importlib.util.spec_from_file_location(modname, filename, loader=loader)
++    module = importlib.util.module_from_spec(spec)
++    # The module is always executed and not cached in sys.modules.
++    # Uncomment the following line to cache the module.
++    # sys.modules[module.__name__] = module
++    loader.exec_module(module)
++    return module
+ 
+ def WrapperPath():
+   return os.path.join(os.path.dirname(__file__), 'repo')
+@@ -26,5 +36,5 @@ _wrapper_module = None
+ def Wrapper():
+   global _wrapper_module
+   if not _wrapper_module:
+-    _wrapper_module = imp.load_source('wrapper', WrapperPath())
++    _wrapper_module = load_source('wrapper', WrapperPath())
+   return _wrapper_module

@@ -1,21 +1,22 @@
 #!/usr/bin/env bash
-# Export local commits of every SDK project into patches/<project path>/.
-# Commits are taken from BASE (the pristine SDK revision) up to HEAD.
+# Export local commits of the repo tool and every SDK project into
+# patches/<project path>/. Commits are taken from the project's base (the
+# pristine SDK revision) up to HEAD.
 set -euo pipefail
 
-TOP=$(cd "$(dirname "$0")/.." && pwd)
-BASE=${BASE:-m/luckfox-release}
+source "$(dirname "$0")/common.sh"
 
 cd "$TOP"
 
-while read -r proj; do
+list_projects | while read -r proj; do
 	[ -e "$proj/.git" ] || continue
-	git -C "$proj" rev-parse -q --verify "$BASE" >/dev/null || continue
+	base=$(project_base "$proj")
+	git -C "$proj" rev-parse -q --verify "$base" >/dev/null || continue
 
 	out="patches/$proj"
 	rm -f "$out"/*.patch
 
-	count=$(git -C "$proj" rev-list --count "$BASE..HEAD")
+	count=$(git -C "$proj" rev-list --count "$base..HEAD")
 	[ "$count" -gt 0 ] || continue
 
 	if ! git -C "$proj" diff --quiet HEAD; then
@@ -23,6 +24,6 @@ while read -r proj; do
 	fi
 
 	git -C "$proj" format-patch --quiet --zero-commit --no-signature \
-		-o "$TOP/$out" "$BASE..HEAD"
+		-o "$TOP/$out" "$base..HEAD"
 	echo "$proj: $count patch(es)"
-done < .repo/project.list
+done

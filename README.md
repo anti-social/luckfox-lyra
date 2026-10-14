@@ -6,7 +6,8 @@ projects, helper scripts, the build container and U-Boot env files.
 
 ```
 patches/<project>/   patches for each SDK project (kernel-6.1, buildroot, device/rockchip)
-scripts/             apply-patches.sh / export-patches.sh
+                     and for the repo tool (.repo/repo, Python 3 support)
+scripts/             apply-patches.sh / export-patches.sh, settings in common.sh
 envs/                U-Boot environments, packed with ./build.sh env
 Containerfile        Ubuntu 22.04 build environment
 ```
@@ -21,13 +22,19 @@ Containerfile        Ubuntu 22.04 build environment
    tar -xzf /path/to/luckfox-lyra-<version>.tar.gz
    ```
 
-2. Check out the SDK projects from the local `.repo/` (no network access needed):
+2. Patch the bundled `repo` tool so it runs on Python 3:
+
+   ```sh
+   scripts/apply-patches.sh .repo/repo
+   ```
+
+3. Check out the SDK projects from the local `.repo/` (no network access needed):
 
    ```sh
    .repo/repo/repo sync -l
    ```
 
-3. Apply our patches as commits on the `main` branch of each project:
+4. Apply our patches as commits on the `main` branch of each project:
 
    ```sh
    scripts/apply-patches.sh
