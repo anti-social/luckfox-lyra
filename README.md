@@ -70,6 +70,25 @@ firmware. Parts can be rebuilt with `./build.sh uboot|kernel|rootfs|firmware`.
 See [SDK Image Compilation](https://wiki.luckfox.com/Luckfox-Lyra/SDK-Image-Compilation)
 for details.
 
+## Userdata partition
+
+SPI NAND has an 11.5MB UBI `userdata` partition (`/dev/mtd3`), mounted at
+`/userdata` at boot. Put the files for it into `userdata/` in the SDK root (not
+tracked here) and pack `output/firmware/userdata.img`:
+
+```sh
+podman run --rm -it -v "$PWD:/work" -w /work lyra-sdk ./build.sh extra-parts
+```
+
+Files that the rootfs build installs into `/userdata` also end up in the image.
+To update it from the running board:
+
+```sh
+umount /userdata && ubidetach -p /dev/mtd3
+ubiformat /dev/mtd3 -y -f userdata.img
+reboot
+```
+
 ## Working on changes
 
 Commit in the SDK project as usual, then export and commit the patches here:
