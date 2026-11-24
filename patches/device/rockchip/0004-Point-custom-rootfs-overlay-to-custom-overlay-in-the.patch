@@ -1,0 +1,18 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Koval <kovalidis@gmail.com>
+Date: Tue, 24 Nov 2026 22:44:20 +0200
+Subject: Point custom rootfs overlay to custom-overlay in the SDK root
+
+---
+ common/overlays/rootfs/custom/root | 1 +
+ 1 file changed, 1 insertion(+)
+ create mode 120000 common/overlays/rootfs/custom/root
+
+diff --git a/common/overlays/rootfs/custom/root b/common/overlays/rootfs/custom/root
+new file mode 120000
+index 0000000..940034f
+--- /dev/null
++++ b/common/overlays/rootfs/custom/root
+@@ -0,0 +1 @@
++../../../../../../custom-overlay
+\ No newline at end of file

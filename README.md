@@ -9,6 +9,7 @@ patches/<project>/   patches for each SDK project (kernel-6.1, buildroot, device
                      and for the repo tool (.repo/repo, Python 3 support)
 scripts/             apply-patches.sh / export-patches.sh, settings in common.sh
 envs/                U-Boot environments, packed with ./build.sh env
+custom-overlay/      rootfs overlay (git submodule)
 Containerfile        Ubuntu 22.04 build environment
 ```
 
@@ -69,6 +70,20 @@ Images end up in `rockdev/` (`output/firmware`); `update.img` is the complete
 firmware. Parts can be rebuilt with `./build.sh uboot|kernel|rootfs|firmware`.
 See [SDK Image Compilation](https://wiki.luckfox.com/Luckfox-Lyra/SDK-Image-Compilation)
 for details.
+
+## Custom overlay
+
+`custom-overlay/` is a git submodule that mirrors the target rootfs: e.g.
+`custom-overlay/etc/foo.conf` is installed as `/etc/foo.conf`. It is copied
+over the rootfs on every `./build.sh rootfs`. The SDK reaches it through the
+`device/rockchip/common/overlays/rootfs/custom/root` symlink (added by our
+`device/rockchip` patch); `overlay` in the SDK root links there too.
+
+Fetch it after cloning:
+
+```sh
+git submodule update --init
+```
 
 ## Userdata partition
 

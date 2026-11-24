@@ -2,6 +2,7 @@
 /*
 !/.gitignore
 !/Containerfile
+!/custom-overlay
 !/README.md
 !/envs/
 !/patches/
