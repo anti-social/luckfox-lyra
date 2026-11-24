@@ -1,0 +1,23 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Koval <kovalidis@gmail.com>
+Date: Tue, 24 Nov 2026 23:31:12 +0200
+Subject: Enable ina238 module
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ arch/arm/configs/rk3506_luckfox_defconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/configs/rk3506_luckfox_defconfig b/arch/arm/configs/rk3506_luckfox_defconfig
+index e2447f5f6..fae95e3a4 100644
+--- a/arch/arm/configs/rk3506_luckfox_defconfig
++++ b/arch/arm/configs/rk3506_luckfox_defconfig
+@@ -245,7 +245,7 @@ CONFIG_GPIO_SYSFS=y
+ CONFIG_POWER_RESET=y
+ CONFIG_SYSCON_REBOOT_MODE=y
+ CONFIG_POWER_SUPPLY=y
+-# CONFIG_HWMON is not set
++CONFIG_SENSORS_INA238=m
+ CONFIG_THERMAL=y
+ CONFIG_THERMAL_WRITABLE_TRIPS=y
+ CONFIG_THERMAL_GOV_USER_SPACE=y
