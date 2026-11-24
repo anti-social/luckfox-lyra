@@ -57,6 +57,7 @@ Inside it:
 
 ```sh
 # board: RK3506G_Luckfox_Lyra_Plus, boot medium: SPI_NAND, system: Buildroot
+# (or RK3506B_Luckfox_Lyra_Ultra, boot medium: EMMC)
 podman run --rm -it -v "$PWD:/work" -w /work lyra-sdk ./build.sh lunch
 
 # build full image
@@ -87,20 +88,36 @@ git submodule update --init
 
 ## Userdata partition
 
-SPI NAND has an 11.5MB UBI `userdata` partition (`/dev/mtd3`), mounted at
-`/userdata` at boot. Put the files for it into `userdata/` in the SDK root (not
-tracked here) and pack `output/firmware/userdata.img`:
+Both boards have a `userdata` partition, mounted at `/userdata` at boot:
+
+| Board              | Storage  | Partition        | Size   | Filesystem |
+|--------------------|----------|------------------|--------|------------|
+| Lyra Plus          | SPI NAND | `/dev/mtd3`      | 11.5MB | UBIFS      |
+| Lyra Ultra         | eMMC     | `/dev/mmcblk0p4` | 64MB   | ext4       |
+
+Put the files for it into `userdata/` in the SDK root (not tracked here) and
+pack `output/firmware/userdata.img`:
 
 ```sh
 podman run --rm -it -v "$PWD:/work" -w /work lyra-sdk ./build.sh extra-parts
 ```
 
 Files that the rootfs build installs into `/userdata` also end up in the image.
-To update it from the running board:
+On ext4 about 8MB go to the journal and inode tables, so ~56MB are usable.
+
+To update it from the running board, on Lyra Plus (SPI NAND):
 
 ```sh
 umount /userdata && ubidetach -p /dev/mtd3
 ubiformat /dev/mtd3 -y -f userdata.img
+reboot
+```
+
+On Lyra Ultra (eMMC):
+
+```sh
+umount /userdata
+dd if=userdata.img of=/dev/block/by-name/userdata bs=1M
 reboot
 ```
 
