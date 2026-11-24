@@ -1,0 +1,50 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Koval <kovalidis@gmail.com>
+Date: Tue, 24 Nov 2026 23:15:37 +0200
+Subject: Do not power on wireless chip at boot
+
+Luckfox Lyra has no Wi-Fi/BT chip, so S35wifibt-poweron.sh is not
+needed.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../rootfs/luckfox-lyra/S35wifibt-poweron.sh        | 13 -------------
+ common/overlays/rootfs/luckfox-lyra/install.sh      |  2 --
+ 2 files changed, 15 deletions(-)
+ delete mode 100755 common/overlays/rootfs/luckfox-lyra/S35wifibt-poweron.sh
+
+diff --git a/common/overlays/rootfs/luckfox-lyra/S35wifibt-poweron.sh b/common/overlays/rootfs/luckfox-lyra/S35wifibt-poweron.sh
+deleted file mode 100755
+index 3d7d28c..0000000
+--- a/common/overlays/rootfs/luckfox-lyra/S35wifibt-poweron.sh
++++ /dev/null
+@@ -1,13 +0,0 @@
+-#!/bin/sh
+-
+-case "$1" in
+-	start)
+-		if [ -f /sys/class/rfkill/rfkill0/state ]; then
+-			echo 1 > /sys/class/rfkill/rfkill0/state
+-		fi
+-		;;
+-	*)
+-		echo "Usage: [start|stop|restart]" >&2
+-		exit 3
+-		;;
+-esac
+diff --git a/common/overlays/rootfs/luckfox-lyra/install.sh b/common/overlays/rootfs/luckfox-lyra/install.sh
+index ca7247d..739a1b4 100755
+--- a/common/overlays/rootfs/luckfox-lyra/install.sh
++++ b/common/overlays/rootfs/luckfox-lyra/install.sh
+@@ -9,11 +9,9 @@ OVERLAY_DIR="$(dirname "$(realpath "$0")")"
+ 
+ $RK_RSYNC "$OVERLAY_DIR/etc" "$OVERLAY_DIR/usr" "$TARGET_DIR/"
+ 
+-install_sysv_service "$OVERLAY_DIR/S35wifibt-poweron.sh" S
+ install_sysv_service "$OVERLAY_DIR/S35es8311" S
+ install_sysv_service "$OVERLAY_DIR/S45usbconfig" S
+ install_sysv_service "$OVERLAY_DIR/S60netdevice" S
+-install_busybox_service "$OVERLAY_DIR/S35wifibt-poweron.sh"
+ install_busybox_service "$OVERLAY_DIR/S35es8311"
+ install_busybox_service "$OVERLAY_DIR/S45usbconfig"
+ install_busybox_service "$OVERLAY_DIR/S60netdevice"

@@ -1,0 +1,25 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Koval <kovalidis@gmail.com>
+Date: Tue, 24 Nov 2026 23:15:37 +0200
+Subject: Do not install Wi-Fi/BT tools
+
+Luckfox Lyra has no Wi-Fi/BT chip. Dropping rkwifibt-app also drops
+bluez5-utils, bluez-alsa and wpa_supplicant it selects.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ configs/rockchip_rk3506_luckfox_defconfig | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/configs/rockchip_rk3506_luckfox_defconfig b/configs/rockchip_rk3506_luckfox_defconfig
+index 43a5b079..ee6c71af 100644
+--- a/configs/rockchip_rk3506_luckfox_defconfig
++++ b/configs/rockchip_rk3506_luckfox_defconfig
+@@ -68,7 +68,6 @@ BR2_PACKAGE_RKADK=y
+ BR2_PACKAGE_RKADK_DISPLAY=y
+ BR2_PACKAGE_RKADK_EXAMPLES=y
+ BR2_PACKAGE_RKADK_PLAYER=y
+-BR2_PACKAGE_RKWIFIBT_APP=y
+ BR2_PACKAGE_ROCKCHIP_RGA=y
+ BR2_PACKAGE_ROCKCHIP_TEST=y
+ BR2_PACKAGE_TCPDUMP=y
