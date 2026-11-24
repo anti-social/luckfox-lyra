@@ -1,0 +1,155 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Koval <kovalidis@gmail.com>
+Date: Wed, 25 Nov 2026 01:18:03 +0200
+Subject: Restore Ethernet MAC before networking, drop extra DHCP clients
+
+S60netdevice restored the saved eth0/eth1 MAC after S40network had
+already started DHCP, and ran its own udhcpc with the stock script next
+to the ifup one, adding a default route to the main table and rewriting
+resolv.conf. Move the MAC restore into S39macaddr, before networking,
+and leave DHCP to ifup. S60netdevice keeps only the USB gadget setup.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../overlays/rootfs/luckfox-lyra/S39macaddr   | 44 ++++++++++++++
+ .../overlays/rootfs/luckfox-lyra/S60netdevice | 58 -------------------
+ .../overlays/rootfs/luckfox-lyra/install.sh   |  2 +
+ 3 files changed, 46 insertions(+), 58 deletions(-)
+ create mode 100755 common/overlays/rootfs/luckfox-lyra/S39macaddr
+
+diff --git a/common/overlays/rootfs/luckfox-lyra/S39macaddr b/common/overlays/rootfs/luckfox-lyra/S39macaddr
+new file mode 100755
+index 0000000..5e8cf78
+--- /dev/null
++++ b/common/overlays/rootfs/luckfox-lyra/S39macaddr
+@@ -0,0 +1,44 @@
++#!/bin/sh
++#
++# Keep Ethernet MAC addresses stable across reboots: the first boot saves the
++# (random) MAC of each interface to /etc/.<interface>_macaddr, later boots
++# restore it. Runs before S40network, so DHCP always sees the final MAC.
++
++restore_mac() {
++	iface="$1"
++	file="/etc/.${iface}_macaddr"
++
++	[ -e "/sys/class/net/$iface" ] || return 0
++
++	current=$(cat "/sys/class/net/$iface/address")
++	saved=$(cat "$file" 2>/dev/null)
++
++	if [ -z "$saved" ]; then
++		echo "$current" > "$file"
++		echo "Saved $iface MAC address $current"
++		return 0
++	fi
++
++	[ "$saved" = "$current" ] && return 0
++
++	if ip link show "$iface" | grep -q "[<,]UP[,>]"; then
++		ifconfig "$iface" down
++		ifconfig "$iface" hw ether "$saved"
++		ifconfig "$iface" up
++	else
++		ifconfig "$iface" hw ether "$saved"
++	fi
++	echo "Set $iface MAC address to $saved"
++}
++
++case "$1" in
++	start)
++		restore_mac eth0
++		restore_mac eth1
++		;;
++	stop|restart)
++		;;
++	*)
++		echo "Usage: $0 {start|stop|restart}"
++		exit 1
++esac
+diff --git a/common/overlays/rootfs/luckfox-lyra/S60netdevice b/common/overlays/rootfs/luckfox-lyra/S60netdevice
+index f7b5872..2bacd73 100755
+--- a/common/overlays/rootfs/luckfox-lyra/S60netdevice
++++ b/common/overlays/rootfs/luckfox-lyra/S60netdevice
+@@ -1,66 +1,8 @@
+ #!/bin/sh
+ 
+-ETH0_MAC_FILE="/etc/.eth0_macaddr"
+-ETH1_MAC_FILE="/etc/.eth1_macaddr"
+ USB_MAC_FILE="/etc/.usb_macaddr"
+ 
+ start() {
+-	if ifconfig -a | grep -q 'eth0'; then
+-		ifconfig eth0 up
+-
+-		ETH0_CURRENT_MAC=$(cat /sys/class/net/eth0/address)
+-
+-		if [ -f "$ETH0_MAC_FILE" ]; then
+-			ETH0_SAVED_MAC=$(cat "$ETH0_MAC_FILE")
+-			if [ -z "$ETH0_SAVED_MAC" ];then
+-				rm $ETH0_MAC_FILE
+-				echo "$ETH0_CURRENT_MAC" > "$ETH0_MAC_FILE"
+-				echo "[S60netdevice] Saved current MAC address ($ETH0_CURRENT_MAC) to $ETH0_MAC_FILE"
+-			else
+-				echo "[S60netdevice] Saved eth0 Mac address:$ETH0_SAVED_MAC"
+-				ifconfig eth0 down
+-				ifconfig eth0 hw ether "$ETH0_SAVED_MAC"
+-				ifconfig eth0 up
+-				echo "[S60netdevice] Set eth0 MAC address to $ETH0_SAVED_MAC"
+-			fi
+-		else
+-			echo "$ETH0_CURRENT_MAC" > "$ETH0_MAC_FILE"
+-			echo "[S60netdevice] Saved current MAC address ($ETH0_CURRENT_MAC) to $ETH0_MAC_FILE"
+-		fi
+-
+-		udhcpc -i eth0 > /tmp/eth0_udhcpc.log 2>&1 &
+-	else
+-		echo "[S60netdevice] eth0 not found"
+-	fi
+-
+-	if ifconfig -a | grep -q 'eth1'; then
+-		ifconfig eth1 up
+-
+-		ETH1_CURRENT_MAC=$(cat /sys/class/net/eth1/address)
+-
+-		if [ -f "$ETH1_MAC_FILE" ]; then
+-			ETH1_SAVED_MAC=$(cat "$ETH1_MAC_FILE")
+-			if [ -z "$ETH1_SAVED_MAC" ];then
+-				rm $ETH1_MAC_FILE
+-				echo "$ETH1_CURRENT_MAC" > "$ETH1_MAC_FILE"
+-				echo "[S60netdevice] Saved current MAC address ($ETH1_CURRENT_MAC) to $ETH1_MAC_FILE"
+-			else
+-				echo "[S60netdevice] Saved eth1 Mac address:$ETH1_SAVED_MAC"
+-				ifconfig eth1 down
+-				ifconfig eth1 hw ether "$ETH1_SAVED_MAC"
+-				ifconfig eth1 up
+-				echo "[S60netdevice] Set eth1 MAC address to $ETH1_SAVED_MAC"
+-			fi
+-		else
+-			echo "$ETH1_CURRENT_MAC" > "$ETH1_MAC_FILE"
+-			echo "[S60netdevice] Saved current MAC address ($ETH1_CURRENT_MAC) to $ETH1_MAC_FILE"
+-		fi
+-
+-		udhcpc -i eth1 > /tmp/eth1_udhcpc.log 2>&1 &
+-	else
+-		echo "[S60netdevice] eth1 not found"
+-	fi
+-
+ 	sleep 8
+ 
+ 	if [ -d "/sys/devices/platform/ff740000.usb/gadget.0/net" ]; then
+diff --git a/common/overlays/rootfs/luckfox-lyra/install.sh b/common/overlays/rootfs/luckfox-lyra/install.sh
+index 739a1b4..cd45a45 100755
+--- a/common/overlays/rootfs/luckfox-lyra/install.sh
++++ b/common/overlays/rootfs/luckfox-lyra/install.sh
+@@ -10,8 +10,10 @@ OVERLAY_DIR="$(dirname "$(realpath "$0")")"
+ $RK_RSYNC "$OVERLAY_DIR/etc" "$OVERLAY_DIR/usr" "$TARGET_DIR/"
+ 
+ install_sysv_service "$OVERLAY_DIR/S35es8311" S
++install_sysv_service "$OVERLAY_DIR/S39macaddr" S
+ install_sysv_service "$OVERLAY_DIR/S45usbconfig" S
+ install_sysv_service "$OVERLAY_DIR/S60netdevice" S
+ install_busybox_service "$OVERLAY_DIR/S35es8311"
++install_busybox_service "$OVERLAY_DIR/S39macaddr"
+ install_busybox_service "$OVERLAY_DIR/S45usbconfig"
+ install_busybox_service "$OVERLAY_DIR/S60netdevice"
