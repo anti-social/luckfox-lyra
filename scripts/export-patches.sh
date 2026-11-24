@@ -23,7 +23,7 @@ list_projects | while read -r proj; do
 		echo "warning: $proj has uncommitted changes, they are not exported" >&2
 	fi
 
-	git -C "$proj" format-patch --quiet --zero-commit --no-signature \
+	git -C "$proj" format-patch --quiet --zero-commit --no-signature -k \
 		-o "$TOP/$out" "$base..HEAD"
 	echo "$proj: $count patch(es)"
 done

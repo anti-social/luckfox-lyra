@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Alexander Koval <kovalidis@gmail.com>
 Date: Wed, 14 Oct 2026 22:54:34 +0300
-Subject: [PATCH 4/6] Use name for ubi mtd device instead of index
+Subject: Use name for ubi mtd device instead of index
 
 ---
  arch/arm/boot/dts/rk3506g-luckfox-lyra-plus.dts | 2 +-

@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Alexander Koval <kovalidis@gmail.com>
 Date: Wed, 14 Oct 2026 22:55:34 +0300
-Subject: [PATCH 5/6] Enable uart1 and uart2
+Subject: Enable uart1 and uart2
 
 ---
  arch/arm/boot/dts/rk3506g-luckfox-lyra-plus.dts | 15 +++++++++++++++
