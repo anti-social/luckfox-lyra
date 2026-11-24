@@ -1,0 +1,24 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Koval <kovalidis@gmail.com>
+Date: Wed, 25 Nov 2026 00:34:50 +0200
+Subject: Grow Lyra Ultra userdata partition to 64M
+
+On an 11.5M ext4 filesystem the 4M journal and inode tables leave only
+6.8M usable. Move userdata to 0x10000 with 64M and start rootfs after it.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .chips/rk3506/parameter-lyra-ultra-emmc.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/.chips/rk3506/parameter-lyra-ultra-emmc.txt b/.chips/rk3506/parameter-lyra-ultra-emmc.txt
+index 1e16d82..8adf65e 100644
+--- a/.chips/rk3506/parameter-lyra-ultra-emmc.txt
++++ b/.chips/rk3506/parameter-lyra-ultra-emmc.txt
+@@ -9,5 +9,5 @@ CHECK_MASK: 0x80
+ PWR_HLD: 0,0,A,0,1
+ TYPE: GPT
+ GROW_ALIGN: 0
+-CMDLINE: mtdparts=rk29xxnand:0x00002000@0x00002000(uboot),0x00006000@0x00004000(boot),0x00000400@0x0000A000(env),0x00005C00@0x0000A400(userdata),-@0x00010000(rootfs:grow)
++CMDLINE: mtdparts=rk29xxnand:0x00002000@0x00002000(uboot),0x00006000@0x00004000(boot),0x00000400@0x0000A000(env),0x00020000@0x00010000(userdata),-@0x00030000(rootfs:grow)
+ uuid:rootfs=614e0000-0000-4b53-8000-1d28000054a9
