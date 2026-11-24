@@ -1,0 +1,25 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Koval <kovalidis@gmail.com>
+Date: Wed, 25 Nov 2026 00:47:21 +0200
+Subject: Install ntp
+
+The board has no battery-backed clock and boots at 1970, so WireGuard
+handshakes are rejected as replays. Sync the time with ntpd at boot.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ configs/rockchip_rk3506_luckfox_defconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/configs/rockchip_rk3506_luckfox_defconfig b/configs/rockchip_rk3506_luckfox_defconfig
+index d08225ec..804d1281 100644
+--- a/configs/rockchip_rk3506_luckfox_defconfig
++++ b/configs/rockchip_rk3506_luckfox_defconfig
+@@ -37,6 +37,7 @@ BR2_PACKAGE_NANOCOM=y
+ BR2_PACKAGE_NFTABLES=y
+ # BR2_PACKAGE_NFTABLES_PYTHON is not set
+ BR2_PACKAGE_NMAP=y
++BR2_PACKAGE_NTP=y
+ BR2_PACKAGE_OPENSSH=y
+ BR2_PACKAGE_OPENSSH_GEN_KEYS=y
+ BR2_PACKAGE_PCRE2_16=y
