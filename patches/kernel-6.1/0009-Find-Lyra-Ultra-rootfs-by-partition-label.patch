@@ -1,0 +1,26 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Koval <kovalidis@gmail.com>
+Date: Wed, 25 Nov 2026 00:18:45 +0200
+Subject: Find Lyra Ultra rootfs by partition label
+
+The env partition before rootfs shifts its number, so do not rely on
+root=/dev/mmcblk0p3.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ arch/arm/boot/dts/rk3506b-luckfox-lyra-ultra.dts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/rk3506b-luckfox-lyra-ultra.dts b/arch/arm/boot/dts/rk3506b-luckfox-lyra-ultra.dts
+index 2be60b57a..9b03c863b 100644
+--- a/arch/arm/boot/dts/rk3506b-luckfox-lyra-ultra.dts
++++ b/arch/arm/boot/dts/rk3506b-luckfox-lyra-ultra.dts
+@@ -12,7 +12,7 @@ / {
+ 	compatible = "rockchip,rk3506g-demo-display-control", "rockchip,rk3506";
+ 
+ 	chosen {
+-		bootargs = "earlycon=uart8250,mmio32,0xff0a0000 console=tty1 console=ttyFIQ0 root=/dev/mmcblk0p3 rootfstype=ext4 rootwait snd_aloop.index=7 snd_aloop.use_raw_jiffies=1";
++		bootargs = "earlycon=uart8250,mmio32,0xff0a0000 console=tty1 console=ttyFIQ0 root=PARTLABEL=rootfs rootfstype=ext4 rootwait snd_aloop.index=7 snd_aloop.use_raw_jiffies=1";
+ 	};
+ 
+ 	//acodec_sound: acodec-sound {
