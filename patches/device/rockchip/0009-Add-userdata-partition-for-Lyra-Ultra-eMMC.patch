@@ -1,0 +1,41 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Koval <kovalidis@gmail.com>
+Date: Wed, 25 Nov 2026 00:20:36 +0200
+Subject: Add userdata partition for Lyra Ultra eMMC
+
+Add an 11.5MB ext4 userdata partition after env on Lyra Ultra eMMC,
+built from userdata/ in the SDK root.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .chips/rk3506/luckfox_lyra_ultra_buildroot_emmc_defconfig | 5 ++++-
+ .chips/rk3506/parameter-lyra-ultra-emmc.txt               | 2 +-
+ 2 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/.chips/rk3506/luckfox_lyra_ultra_buildroot_emmc_defconfig b/.chips/rk3506/luckfox_lyra_ultra_buildroot_emmc_defconfig
+index ae6d05a..985b6bd 100644
+--- a/.chips/rk3506/luckfox_lyra_ultra_buildroot_emmc_defconfig
++++ b/.chips/rk3506/luckfox_lyra_ultra_buildroot_emmc_defconfig
+@@ -14,7 +14,10 @@ RK_KERNEL_CFG_FRAGMENTS="rk3506-display.config"
+ RK_KERNEL_DTS_NAME="rk3506b-luckfox-lyra-ultra"
+ RK_BOOT_COMPRESSED=y
+ # RK_RECOVERY is not set
+-RK_EXTRA_PARTITION_NUM=0
++RK_EXTRA_PARTITION_NUM=1
++RK_EXTRA_PARTITION_1_FSTYPE="ext4"
++RK_EXTRA_PARTITION_1_SRC="$RK_SDK_DIR/userdata"
++RK_EXTRA_PARTITION_1_SIZE="max"
+ RK_PARAMETER="parameter-lyra-ultra-emmc.txt"
+ RK_USE_FIT_IMG=y
+ RK_ROOTFS_EXTRA_OVERLAY_DIRS="fw-env-emmc"
+diff --git a/.chips/rk3506/parameter-lyra-ultra-emmc.txt b/.chips/rk3506/parameter-lyra-ultra-emmc.txt
+index 10976ac..1e16d82 100644
+--- a/.chips/rk3506/parameter-lyra-ultra-emmc.txt
++++ b/.chips/rk3506/parameter-lyra-ultra-emmc.txt
+@@ -9,5 +9,5 @@ CHECK_MASK: 0x80
+ PWR_HLD: 0,0,A,0,1
+ TYPE: GPT
+ GROW_ALIGN: 0
+-CMDLINE: mtdparts=rk29xxnand:0x00002000@0x00002000(uboot),0x00006000@0x00004000(boot),0x00000400@0x0000A000(env),-@0x00010000(rootfs:grow)
++CMDLINE: mtdparts=rk29xxnand:0x00002000@0x00002000(uboot),0x00006000@0x00004000(boot),0x00000400@0x0000A000(env),0x00005C00@0x0000A400(userdata),-@0x00010000(rootfs:grow)
+ uuid:rootfs=614e0000-0000-4b53-8000-1d28000054a9
