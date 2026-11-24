@@ -1,0 +1,26 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Koval <kovalidis@gmail.com>
+Date: Tue, 24 Nov 2026 22:52:00 +0200
+Subject: Install iputils
+
+Enable iputils (ping, tracepath) without arping and clockdiff.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ configs/rockchip_rk3506_luckfox_defconfig | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/configs/rockchip_rk3506_luckfox_defconfig b/configs/rockchip_rk3506_luckfox_defconfig
+index ce6759cf..43a5b079 100644
+--- a/configs/rockchip_rk3506_luckfox_defconfig
++++ b/configs/rockchip_rk3506_luckfox_defconfig
+@@ -23,6 +23,9 @@ BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_6_1=y
+ BR2_PACKAGE_HTOP=y
+ BR2_PACKAGE_IPERF3=y
+ BR2_PACKAGE_IPROUTE2=y
++BR2_PACKAGE_IPUTILS=y
++# BR2_PACKAGE_IPUTILS_ARPING is not set
++# BR2_PACKAGE_IPUTILS_CLOCKDIFF is not set
+ BR2_PACKAGE_LIBCAP=y
+ BR2_PACKAGE_LIBCURL=y
+ BR2_PACKAGE_LIBEVDEV=y
