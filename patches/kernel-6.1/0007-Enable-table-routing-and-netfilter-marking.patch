@@ -1,0 +1,30 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Koval <kovalidis@gmail.com>
+Date: Tue, 24 Nov 2026 22:24:59 +0200
+Subject: Enable table routing and netfilter marking
+
+---
+ arch/arm/configs/rk3506_luckfox_defconfig | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/arch/arm/configs/rk3506_luckfox_defconfig b/arch/arm/configs/rk3506_luckfox_defconfig
+index 84db3d39b..e2447f5f6 100644
+--- a/arch/arm/configs/rk3506_luckfox_defconfig
++++ b/arch/arm/configs/rk3506_luckfox_defconfig
+@@ -70,6 +70,8 @@ CONFIG_NET=y
+ CONFIG_PACKET=y
+ CONFIG_UNIX=y
+ CONFIG_INET=y
++CONFIG_IP_ADVANCED_ROUTER=y
++CONFIG_IP_MULTIPLE_TABLES=y
+ # CONFIG_INET_DIAG is not set
+ CONFIG_IPV6=m
+ # CONFIG_IPV6_SIT is not set
+@@ -81,6 +83,7 @@ CONFIG_NFT_MASQ=m
+ CONFIG_NFT_NAT=m
+ CONFIG_NFT_REJECT=m
+ CONFIG_NETFILTER_XTABLES=m
++CONFIG_NETFILTER_XT_MARK=m
+ CONFIG_NF_TABLES_IPV4=y
+ CONFIG_NF_TABLES_IPV6=y
+ CONFIG_BRIDGE=m
