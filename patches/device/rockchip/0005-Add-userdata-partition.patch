@@ -1,0 +1,40 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Koval <kovalidis@gmail.com>
+Date: Tue, 24 Nov 2026 22:49:52 +0200
+Subject: Add userdata partition
+
+Add an 11.5MB UBI userdata partition to SPI NAND, built from userdata/
+in the SDK root.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .chips/rk3506/luckfox_lyra_plus_buildroot_spinand_defconfig | 4 +++-
+ .chips/rk3506/parameter-lyra-plus-spinand.txt               | 2 +-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/.chips/rk3506/luckfox_lyra_plus_buildroot_spinand_defconfig b/.chips/rk3506/luckfox_lyra_plus_buildroot_spinand_defconfig
+index 61fa798..8c1a131 100644
+--- a/.chips/rk3506/luckfox_lyra_plus_buildroot_spinand_defconfig
++++ b/.chips/rk3506/luckfox_lyra_plus_buildroot_spinand_defconfig
+@@ -14,7 +14,9 @@ RK_KERNEL_CFG_FRAGMENTS="rk3506-display.config"
+ RK_KERNEL_DTS_NAME="rk3506g-luckfox-lyra-plus"
+ RK_BOOT_COMPRESSED=y
+ # RK_RECOVERY is not set
+-RK_EXTRA_PARTITION_NUM=0
++RK_EXTRA_PARTITION_NUM=1
++RK_EXTRA_PARTITION_1_FSTYPE="ubi"
++RK_EXTRA_PARTITION_1_SRC="$RK_SDK_DIR/userdata"
+ RK_PARAMETER="parameter-lyra-plus-spinand.txt"
+ RK_USE_FIT_IMG=y
+ RK_ROOTFS_EXTRA_OVERLAY_DIRS="fw-env-spinand"
+diff --git a/.chips/rk3506/parameter-lyra-plus-spinand.txt b/.chips/rk3506/parameter-lyra-plus-spinand.txt
+index 8183929..c0ac91f 100644
+--- a/.chips/rk3506/parameter-lyra-plus-spinand.txt
++++ b/.chips/rk3506/parameter-lyra-plus-spinand.txt
+@@ -9,5 +9,5 @@ CHECK_MASK: 0x80
+ PWR_HLD: 0,0,A,0,1
+ TYPE: GPT
+ GROW_ALIGN: 0
+-CMDLINE:mtdparts=:0x00002000@0x00002000(uboot),0x00006000@0x00004000(boot),0x00000400@0x0000A000(env),-@0x00010000(rootfs:grow)
++CMDLINE:mtdparts=:0x00002000@0x00002000(uboot),0x00006000@0x00004000(boot),0x00000400@0x0000A000(env),0x00005C00@0x0000A400(userdata),-@0x00010000(rootfs:grow)
+ uuid:rootfs=614e0000-0000-4b53-8000-1d28000054a9
