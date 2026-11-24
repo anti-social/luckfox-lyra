@@ -1,0 +1,25 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Koval <kovalidis@gmail.com>
+Date: Wed, 25 Nov 2026 00:13:13 +0200
+Subject: Do not install hostapd
+
+Luckfox Lyra has no Wi-Fi chip.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ configs/rockchip_rk3506_luckfox_defconfig | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/configs/rockchip_rk3506_luckfox_defconfig b/configs/rockchip_rk3506_luckfox_defconfig
+index ee6c71af..d08225ec 100644
+--- a/configs/rockchip_rk3506_luckfox_defconfig
++++ b/configs/rockchip_rk3506_luckfox_defconfig
+@@ -16,8 +16,6 @@ BR2_PACKAGE_FFMPEG_FFPROBE=y
+ BR2_PACKAGE_FFMPEG_GPL=y
+ BR2_PACKAGE_FFMPEG_POSTPROC=y
+ BR2_PACKAGE_FREETYPE=y
+-BR2_PACKAGE_HOSTAPD=y
+-BR2_PACKAGE_HOSTAPD_EAP=y
+ BR2_PACKAGE_HOST_DTC=y
+ BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_6_1=y
+ BR2_PACKAGE_HTOP=y
