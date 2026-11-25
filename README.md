@@ -121,6 +121,41 @@ dd if=userdata.img of=/dev/block/by-name/userdata bs=1M
 reboot
 ```
 
+## Lyra Ultra peripherals
+
+RK3506 routes I2C and UART signals to any of the 32 RM_IO pins. RM_IO0-23 are
+GPIO0_A0-GPIO0_C7 in order (RM_IO8 = GPIO0_B0), RM_IO24-31 are on GPIO1; see
+`kernel/arch/arm/boot/dts/rk3506-pinctrl-rmio.dtsi`.
+
+### I2C
+
+`i2c2` (`/dev/i2c-2`) is enabled on RM_IO1 (SCL, GPIO0_A1) and RM_IO0 (SDA,
+GPIO0_A0), marked `TP+RTC` on the pinout. Further devices can share the bus;
+these addresses are already taken:
+
+| Address        | Device                       |
+|----------------|------------------------------|
+| `0x51`         | TCS8563 RTC                  |
+| `0x14`, `0x5d` | Goodix touch panel connector |
+| `0x45`         | DSI backlight                |
+
+`i2c0` (`/dev/i2c-0`) is enabled on RM_IO10 (SCL, GPIO0_B2) and RM_IO11
+(SDA, GPIO0_B3), with nothing on it yet. These pins have no pull-ups, neither
+on the board nor in the pin config, so the connected device must provide them
+(most breakout boards do). `i2c1` is disabled.
+
+### UART
+
+| UART    | Device         | TX                | RX                |
+|---------|----------------|-------------------|-------------------|
+| `uart0` | `/dev/ttyFIQ0` | GPIO0_C6          | GPIO0_C7          |
+| `uart1` | `/dev/ttyS1`   | RM_IO2 (GPIO0_A2) | RM_IO3 (GPIO0_A3) |
+| `uart2` | `/dev/ttyS2`   | RM_IO4 (GPIO0_A4) | RM_IO5 (GPIO0_A5) |
+| `uart3` | `/dev/ttyS3`   | RM_IO6 (GPIO0_A6) | RM_IO7 (GPIO0_A7) |
+| `uart4` | `/dev/ttyS4`   | RM_IO8 (GPIO0_B0) | RM_IO9 (GPIO0_B1) |
+
+`uart0` is the debug console. `uart5` (fixed pins) is disabled.
+
 ## Working on changes
 
 Commit in the SDK project as usual, then export and commit the patches here:
