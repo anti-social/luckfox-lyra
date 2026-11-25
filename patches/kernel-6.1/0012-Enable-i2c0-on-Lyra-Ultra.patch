@@ -1,0 +1,32 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Koval <kovalidis@gmail.com>
+Date: Wed, 25 Nov 2026 13:51:21 +0200
+Subject: Enable i2c0 on Lyra Ultra
+
+Route i2c0 through RMIO: SCL on RM_IO10 (GPIO0_B2), SDA on RM_IO11
+(GPIO0_B3). The pins have no pull-ups, the connected device must provide
+them.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ arch/arm/boot/dts/rk3506b-luckfox-lyra-ultra.dts | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/arch/arm/boot/dts/rk3506b-luckfox-lyra-ultra.dts b/arch/arm/boot/dts/rk3506b-luckfox-lyra-ultra.dts
+index bd4a0a209..3593c451c 100644
+--- a/arch/arm/boot/dts/rk3506b-luckfox-lyra-ultra.dts
++++ b/arch/arm/boot/dts/rk3506b-luckfox-lyra-ultra.dts
+@@ -175,6 +175,13 @@ tcs8563: tcs8563@51 {
+ 	};
+ };
+ 
++/**********i2c**********/
++&i2c0 {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&rm_io10_i2c0_scl &rm_io11_i2c0_sda>;
++};
++
+ /**********uart**********/
+ &uart1 {
+ 	status = "okay";
