@@ -1,0 +1,53 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Koval <kovalidis@gmail.com>
+Date: Wed, 25 Nov 2026 13:47:19 +0200
+Subject: Enable uart1-uart4 on Lyra Ultra
+
+Route the UARTs through RMIO to GPIO0_A2-GPIO0_B1:
+
+  uart1: TX RM_IO2 (GPIO0_A2), RX RM_IO3 (GPIO0_A3)
+  uart2: TX RM_IO4 (GPIO0_A4), RX RM_IO5 (GPIO0_A5)
+  uart3: TX RM_IO6 (GPIO0_A6), RX RM_IO7 (GPIO0_A7)
+  uart4: TX RM_IO8 (GPIO0_B0), RX RM_IO9 (GPIO0_B1)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../boot/dts/rk3506b-luckfox-lyra-ultra.dts   | 25 +++++++++++++++++++
+ 1 file changed, 25 insertions(+)
+
+diff --git a/arch/arm/boot/dts/rk3506b-luckfox-lyra-ultra.dts b/arch/arm/boot/dts/rk3506b-luckfox-lyra-ultra.dts
+index 9b03c863b..bd4a0a209 100644
+--- a/arch/arm/boot/dts/rk3506b-luckfox-lyra-ultra.dts
++++ b/arch/arm/boot/dts/rk3506b-luckfox-lyra-ultra.dts
+@@ -175,6 +175,31 @@ tcs8563: tcs8563@51 {
+ 	};
+ };
+ 
++/**********uart**********/
++&uart1 {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&rm_io2_uart1_tx &rm_io3_uart1_rx>;
++};
++
++&uart2 {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&rm_io4_uart2_tx &rm_io5_uart2_rx>;
++};
++
++&uart3 {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&rm_io6_uart3_tx &rm_io7_uart3_rx>;
++};
++
++&uart4 {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&rm_io8_uart4_tx &rm_io9_uart4_rx>;
++};
++
+ /**********pinctrl**********/
+ &pinctrl {
+ 	lcd {
