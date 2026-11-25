@@ -1,0 +1,36 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Koval <kovalidis@gmail.com>
+Date: Wed, 25 Nov 2026 14:18:34 +0200
+Subject: Run optional install hook of the custom rootfs overlay
+
+After copying custom-overlay into the rootfs, run its .install.sh (if
+executable) with the target dir, for what plain files can't do, such as
+editing generated files like /etc/shadow. The hook itself is not copied.
+
+Also fix the check for the overlay root dir, which tested an empty path.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ common/overlays/rootfs/custom/install.sh | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/common/overlays/rootfs/custom/install.sh b/common/overlays/rootfs/custom/install.sh
+index e52c16d..5826e0e 100755
+--- a/common/overlays/rootfs/custom/install.sh
++++ b/common/overlays/rootfs/custom/install.sh
+@@ -5,8 +5,13 @@ TARGET_DIR="$1"
+ 
+ OVERLAY_DIR="$(dirname "$(realpath "$0")")"
+ 
+-if [ ! -d "" ]; then
++if [ ! -d "$OVERLAY_DIR/root" ]; then
+ 	mkdir -p $OVERLAY_DIR/root
+ fi
+ 
+-$RK_RSYNC "$OVERLAY_DIR/root/" "$TARGET_DIR/"
++$RK_RSYNC --exclude /.install.sh "$OVERLAY_DIR/root/" "$TARGET_DIR/"
++
++# Optional hook for what plain files can't do (edit generated files, ...)
++if [ -x "$OVERLAY_DIR/root/.install.sh" ]; then
++	"$OVERLAY_DIR/root/.install.sh" "$TARGET_DIR"
++fi
