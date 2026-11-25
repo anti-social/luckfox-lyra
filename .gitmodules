@@ -1,0 +1,3 @@
+[submodule "custom-overlay"]
+	path = custom-overlay
+	url = git@github.com:anti-social/firefly-luckfox-overlay.git
