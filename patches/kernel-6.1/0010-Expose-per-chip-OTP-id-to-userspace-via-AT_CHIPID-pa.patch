@@ -1,0 +1,244 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alexander Koval <kovalidis@gmail.com>
+Date: Wed, 25 Nov 2026 12:38:31 +0200
+Subject: Expose per-chip OTP id to userspace via AT_CHIPID page
+
+Stage the 128-bit chip unique id (already read from OTP by the
+rockchip-cpuinfo driver) into a read-only page, map it into every
+process at exec time via arch_setup_additional_pages() and hand its
+address to userspace through a new AT_CHIPID aux-vector entry, so a
+program can read the id as ordinary memory instead of an obvious
+syscall. AT_VECTOR_SIZE_ARCH is bumped to size mm->saved_auxv.
+
+Page layout: 0x00 raw 16-byte id, 0x10/0x14 crc serial (NO_GKI builds).
+
+The page is allocated only on 32-bit ARM and, once published, is never
+withdrawn: special_mapping_fault() resolves it lazily, so the driver has
+no remove() and forbids sysfs unbind. arch_setup_additional_pages()
+samples the page pointer once per exec, and the driver publishes it with
+smp_store_release() after filling in the id and serial.
+
+Picked from luckfox-pico 6bd6f1fa0, a9eee72f5, c3007561f, b7264c7c7.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ arch/arm/include/asm/elf.h              |  8 ++++
+ arch/arm/include/asm/mmu.h              |  1 +
+ arch/arm/include/uapi/asm/auxvec.h      | 12 ++++++
+ arch/arm/kernel/process.c               | 34 +++++++++++++++
+ drivers/soc/rockchip/rockchip-cpuinfo.c | 57 +++++++++++++++++++++++++
+ 5 files changed, 112 insertions(+)
+
+diff --git a/arch/arm/include/asm/elf.h b/arch/arm/include/asm/elf.h
+index d68101655..d68b2e5f1 100644
+--- a/arch/arm/include/asm/elf.h
++++ b/arch/arm/include/asm/elf.h
+@@ -146,6 +146,14 @@ extern void elf_set_personality(const struct elf32_hdr *);
+ do {								\
+ 	NEW_AUX_ENT(AT_SYSINFO_EHDR,				\
+ 		    (elf_addr_t)current->mm->context.vdso);	\
++	NEW_AUX_ENT(AT_CHIPID,					\
++		    (elf_addr_t)current->mm->context.chipid);	\
++} while (0)
++#else
++#define ARCH_DLINFO						\
++do {								\
++	NEW_AUX_ENT(AT_CHIPID,					\
++		    (elf_addr_t)current->mm->context.chipid);	\
+ } while (0)
+ #endif
+ #define ARCH_HAS_SETUP_ADDITIONAL_PAGES 1
+diff --git a/arch/arm/include/asm/mmu.h b/arch/arm/include/asm/mmu.h
+index e04972384..e48f6a12c 100644
+--- a/arch/arm/include/asm/mmu.h
++++ b/arch/arm/include/asm/mmu.h
+@@ -12,6 +12,7 @@ typedef struct {
+ #endif
+ 	atomic_t	vmalloc_seq;
+ 	unsigned long	sigpage;
++	unsigned long	chipid;		/* userspace addr of the chip-id page */
+ #ifdef CONFIG_VDSO
+ 	unsigned long	vdso;
+ #endif
+diff --git a/arch/arm/include/uapi/asm/auxvec.h b/arch/arm/include/uapi/asm/auxvec.h
+index 5c09da596..0f8b72b3b 100644
+--- a/arch/arm/include/uapi/asm/auxvec.h
++++ b/arch/arm/include/uapi/asm/auxvec.h
+@@ -5,4 +5,16 @@
+ /* VDSO location */
+ #define AT_SYSINFO_EHDR	33
+ 
++/*
++ * Userspace address of the per-chip id page (0 if unavailable).
++ * Private arch value chosen well clear of the generic AT_* range.
++ */
++#define AT_CHIPID	0x2000
++
++/*
++ * Number of ARCH_DLINFO entries; sizes mm->saved_auxv.
++ * Max of: AT_SYSINFO_EHDR (VDSO builds) + AT_CHIPID = 2.
++ */
++#define AT_VECTOR_SIZE_ARCH	2
++
+ #endif
+diff --git a/arch/arm/kernel/process.c b/arch/arm/kernel/process.c
+index ae6067993..ccad865dc 100644
+--- a/arch/arm/kernel/process.c
++++ b/arch/arm/kernel/process.c
+@@ -396,6 +396,23 @@ static const struct vm_special_mapping sigpage_mapping = {
+ 	.mremap = sigpage_mremap,
+ };
+ 
++/*
++ * Page holding the per-chip id, allocated and populated by the
++ * rockchip-cpuinfo driver. NULL until that driver has probed; once set it
++ * is never cleared, since special_mapping_fault() resolves it lazily on a
++ * process's first access and a NULL here would SIGBUS live mappings. When
++ * present it is mapped read-only into every process by
++ * arch_setup_additional_pages(), and its address is handed to userspace
++ * via the AT_CHIPID aux-vector entry.
++ */
++struct page *rockchip_chipid_page;
++EXPORT_SYMBOL(rockchip_chipid_page);
++
++static const struct vm_special_mapping chipid_mapping = {
++	.name  = "[chipid]",
++	.pages = &rockchip_chipid_page,
++};
++
+ int arch_setup_additional_pages(struct linux_binprm *bprm, int uses_interp)
+ {
+ 	struct mm_struct *mm = current->mm;
+@@ -403,6 +420,8 @@ int arch_setup_additional_pages(struct linux_binprm *bprm, int uses_interp)
+ 	unsigned long npages;
+ 	unsigned long addr;
+ 	unsigned long hint;
++	/* Sample once: the driver may publish the page concurrently. */
++	struct page *chipid_page = READ_ONCE(rockchip_chipid_page);
+ 	int ret = 0;
+ 
+ 	if (!signal_page)
+@@ -412,6 +431,8 @@ int arch_setup_additional_pages(struct linux_binprm *bprm, int uses_interp)
+ 
+ 	npages = 1; /* for sigpage */
+ 	npages += vdso_total_pages;
++	if (chipid_page)
++		npages += 1; /* for the chip-id page, laid out after the vdso */
+ 
+ 	if (mmap_write_lock_killable(mm))
+ 		return -EINTR;
+@@ -439,6 +460,19 @@ int arch_setup_additional_pages(struct linux_binprm *bprm, int uses_interp)
+ 	 */
+ 	arm_install_vdso(mm, addr + PAGE_SIZE);
+ 
++	/* Map the chip-id page (read-only) at the end of the reserved region.
++	 * Failure is non-fatal: AT_CHIPID is then left 0 for this process.
++	 */
++	if (chipid_page) {
++		unsigned long chipid_addr =
++			addr + ((1 + vdso_total_pages) << PAGE_SHIFT);
++
++		vma = _install_special_mapping(mm, chipid_addr, PAGE_SIZE,
++			VM_READ | VM_MAYREAD, &chipid_mapping);
++		if (!IS_ERR(vma))
++			mm->context.chipid = chipid_addr;
++	}
++
+  up_fail:
+ 	mmap_write_unlock(mm);
+ 	return ret;
+diff --git a/drivers/soc/rockchip/rockchip-cpuinfo.c b/drivers/soc/rockchip/rockchip-cpuinfo.c
+index 02befb165..78662bf35 100644
+--- a/drivers/soc/rockchip/rockchip-cpuinfo.c
++++ b/drivers/soc/rockchip/rockchip-cpuinfo.c
+@@ -14,6 +14,7 @@
+ #include <linux/crc32.h>
+ #include <linux/io.h>
+ #include <linux/kernel.h>
++#include <linux/mm.h>
+ #include <linux/module.h>
+ #include <linux/nvmem-consumer.h>
+ #include <linux/platform_device.h>
+@@ -24,6 +25,29 @@
+ unsigned long rockchip_soc_id;
+ EXPORT_SYMBOL(rockchip_soc_id);
+ 
++#ifdef CONFIG_ARM
++/*
++ * One read-only page that the ARM arch code (arch/arm/kernel/process.c) maps
++ * into every process, reporting its address through the AT_CHIPID aux-vector
++ * entry. Only on 32-bit ARM (RK3506, RV1103/RV1106); other Rockchip SoCs
++ * built from this driver (e.g. arm64 rk3568) don't expose it.
++ * Layout (offsets from the start of the mapped page):
++ *   0x00  16 bytes  raw per-chip OTP unique id (same byte order as the
++ *                   value hashed into /proc/cpuinfo "Serial")
++ *   0x10  u32       system_serial_low  (crc32, NO_GKI builds only)
++ *   0x14  u32       system_serial_high (crc32, NO_GKI builds only)
++ * The rest of the page is zero. Userspace reads the id as ordinary memory,
++ * with no syscalls.
++ */
++#define CHIPID_OFF_RAW		0x00
++#define CHIPID_OFF_SERIAL_LO	0x10
++#define CHIPID_OFF_SERIAL_HI	0x14
++
++static void *rk_chipid_page;
++
++extern struct page *rockchip_chipid_page;
++#endif
++
+ static int rockchip_cpuinfo_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+@@ -80,12 +104,39 @@ static int rockchip_cpuinfo_probe(struct platform_device *pdev)
+ 
+ 	dev_info(dev, "SoC\t\t: %lx\n", rockchip_soc_id);
+ 
++#ifdef CONFIG_ARM
++	/* Stage the raw unique id into the page mapped into every process. */
++	if (!rk_chipid_page)
++		rk_chipid_page = (void *)get_zeroed_page(GFP_KERNEL);
++	if (rk_chipid_page)
++		memcpy(rk_chipid_page + CHIPID_OFF_RAW, buf, 16);
++	else
++		dev_warn(dev, "chipid: page alloc failed\n");
++#endif
++
+ #ifdef CONFIG_NO_GKI
+ 	system_serial_low = crc32(0, buf, 8);
+ 	system_serial_high = crc32(system_serial_low, buf + 8, 8);
+ 
+ 	dev_info(dev, "Serial\t\t: %08x%08x\n",
+ 		 system_serial_high, system_serial_low);
++
++#ifdef CONFIG_ARM
++	if (rk_chipid_page) {
++		*(u32 *)(rk_chipid_page + CHIPID_OFF_SERIAL_LO) = system_serial_low;
++		*(u32 *)(rk_chipid_page + CHIPID_OFF_SERIAL_HI) = system_serial_high;
++	}
++#endif
++#endif
++
++#ifdef CONFIG_ARM
++	/*
++	 * Publish so every process gets it auto-mapped. Release ordering
++	 * makes the id/serial stores above visible before the pointer.
++	 */
++	if (rk_chipid_page)
++		smp_store_release(&rockchip_chipid_page,
++				  virt_to_page(rk_chipid_page));
+ #endif
+ 
+ 	return 0;
+@@ -102,6 +153,12 @@ static struct platform_driver rockchip_cpuinfo_driver = {
+ 	.driver = {
+ 		.name = "rockchip-cpuinfo",
+ 		.of_match_table = rockchip_cpuinfo_of_match,
++		/*
++		 * The chip-id page is resolved lazily through
++		 * rockchip_chipid_page on first access, so it must never be
++		 * withdrawn once published: forbid sysfs unbind.
++		 */
++		.suppress_bind_attrs = true,
+ 	},
+ };
+ 
